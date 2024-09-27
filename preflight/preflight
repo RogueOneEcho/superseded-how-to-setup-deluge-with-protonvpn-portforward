@@ -1,0 +1,101 @@
+#!/bin/bash
+
+MAX_ATTEMPTS=3
+INTERVAL="10s"
+
+run-checks () {
+  if check-env && check-mount && check-ip
+  then
+    return 0
+  else
+    return 1
+  fi
+}
+
+check-env () {
+  FAILED=0
+  if [[ -z "${EXPECTED_IP}" ]]
+  then
+    echo-warning "EXPECTED_IP is not defined"
+    FAILED=1
+  fi
+  if [[ -z "${MOUNTPOINT}" ]]
+  then
+    echo-warning "MOUNTPOINT is not defined"
+    FAILED=1
+  fi
+  return ${FAILED}
+}
+
+check-mount () {
+  if [[ ! -d "${MOUNTPOINT}" ]]
+  then
+    echo-warning "${MOUNTPOINT} is not a directory"
+    return 1
+  fi
+  FILE_COUNT=$(ls -1A "${MOUNTPOINT}" | wc -l)
+  if [[ "${FILE_COUNT}" -gt "0" ]]
+  then
+    echo-success "${MOUNTPOINT} contains ${FILE_COUNT} files or directories"
+    return 0
+  else
+    echo-warning "${MOUNTPOINT} is empty"
+    return 1
+  fi
+}
+
+check-ip () {
+  IP=$(curl --fail --silent --show-error https://ipinfo.io/ip)
+  if [[ "${IP}" == "${EXPECTED_IP}" ]]
+  then
+    echo-success "External IP is ${IP}"
+    return 0
+  else
+    echo-warning "External IP is ${IP}"
+    echo-subsidiary "Expected ${EXPECTED_IP}"
+    return 1
+  fi
+}
+
+echo-success () {
+  echo -e "\e[32m ✔  $1\e[0m" >&2
+}
+
+echo-information () {
+  echo -e "\e[34m ⓘ  $1\e[0m" >&2
+}
+
+echo-error () {
+  echo -e "\e[31m !  $1\e[0m" >&2
+}
+
+echo-warning () {
+  echo -e "\e[33m ⚠  $1\e[0m" >&2
+}
+
+echo-subsidiary () {
+  echo -e "\e[37m    $1\e[0m" >&2
+}
+
+echo-step () {
+  echo -e "\e[0m »  $1\e[0m" >&2
+}
+
+for ((ATTEMPT=1; ATTEMPT <= MAX_ATTEMPTS; ATTEMPT++))
+do
+  if [[ "${ATTEMPT}" -gt 1 ]]
+  then
+    echo-step "Retrying in ${INTERVAL}"
+    sleep "${INTERVAL}"
+  fi
+
+  echo-step "Attempt ${ATTEMPT} of ${MAX_ATTEMPTS}"
+
+  if run-checks
+  then
+    exit 0
+  fi
+done
+
+echo-error "Max number of attempts reached"
+exit 1

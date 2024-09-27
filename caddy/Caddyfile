@@ -1,0 +1,25 @@
+{
+  admin off
+  acme_dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+  email {env.LETSENCRYPT_EMAIL}
+}
+
+deluge.example.com {
+  reverse_proxy vpn:8112
+}
+
+prowlarr.example.com {
+  reverse_proxy vpn:9696
+}
+
+:80, :443 {
+  templates
+  header Content-Type text/plain
+  respond 200 {
+    body <<EOF
+    Hello {{.RemoteIP}},
+    Unfortunately we couldn't find a match for {{.Host}}.
+    EOF
+    close
+  }
+}

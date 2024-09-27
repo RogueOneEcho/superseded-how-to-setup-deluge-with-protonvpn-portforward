@@ -1,8 +1,8 @@
-# Deluge with Proton VPN port forwarding
+# Deluge via Proton VPN with port forwarding
 
-This guide shows how to run Deluge via ProtonVPN with port forwarding.
+This guide shows how to run Deluge via ProtonVPN with automatic port forwarding.
 
-But due to the flexibility of [Gluetun](https://github.com/qdm12/gluetun) it can be easily adapt it to work with any wireguard or OpenVPN VPN provider by following their [wiki documentation](https://github.com/qdm12/gluetun-wiki).
+Due to the flexibility of [Gluetun](https://github.com/qdm12/gluetun) it can be easily adapt it to work with any wireguard or OpenVPN VPN provider by following their [wiki documentation](https://github.com/qdm12/gluetun-wiki).
 
 *Prior knowledge of Docker, Deluge, Prowlarr, and linuxserver.io containers are assumed.*
 
@@ -186,6 +186,12 @@ Edit `caddy/Caddyfile` replacing `example.com` with your domain.
 
 
 Start the services detached with:
+
+```bash
+docker compose up -d
+```
+
+Or attached:
 
 ```bash
 docker compose up

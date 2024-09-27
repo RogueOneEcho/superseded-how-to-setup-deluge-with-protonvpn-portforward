@@ -33,6 +33,7 @@ services:
     environment:
       MOUNTPOINT: /media
       EXPECTED_IP: 203.0.113.1
+      LOG_LEVEL: debug
     depends_on:
       vpn:
         condition: service_healthy

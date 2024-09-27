@@ -1,45 +1,135 @@
 #!/bin/bash
 
-MAX_ATTEMPTS=3
-INTERVAL="10s"
+MAX_ATTEMPTS="${MAX_ATTEMPTS-3}"
+INTERVAL="${INTERVAL-"10s"}"
 
-run-checks () {
-  if check-env && check-mount && check-ip
-  then
-    return 0
-  else
-    return 1
-  fi
+if [[ "${LOG_LEVEL}" == "trace" ]]
+then
+  LOG_LEVEL=0
+elif [[ "${LOG_LEVEL}" == "debug" ]]
+then
+  LOG_LEVEL=1
+elif [[ "${LOG_LEVEL}" == "information" || "${LOG_LEVEL}" == "info" ]]
+then
+  LOG_LEVEL=2
+elif [[ "${LOG_LEVEL}" == "warning" || "${LOG_LEVEL}" == "warn" ]]
+then
+  LOG_LEVEL=3
+elif [[ "${LOG_LEVEL}" == "error" ]]
+then
+  LOG_LEVEL=4
+elif [[ "${LOG_LEVEL}" == "critical" || "${LOG_LEVEL}" == "crit" ]]
+then
+  LOG_LEVEL=5
+elif [[ "${LOG_LEVEL}" == "none" || "${LOG_LEVEL}" == "silent" ]]
+then
+  LOG_LEVEL=6
+else
+  LOG_LEVEL=0
+fi
+
+RESET="\e[0m"
+BOLD="\e[1m"
+DIM="\e[2m"
+RED="\e[31m"
+GREEN="\e[32m"
+YELLOW="\e[33m"
+BLUE="\e[34m"
+DARK_GRAY="\e[90m"
+
+log-timestamp () {
+  echo -ne "${DIM}$(date +"%Y-%m-%dT%H:%M:%S%:z")${RESET} " >&2
 }
 
-check-env () {
-  FAILED=0
-  if [[ -z "${EXPECTED_IP}" ]]
-  then
-    echo-warning "EXPECTED_IP is not defined"
-    FAILED=1
-  fi
-  if [[ -z "${MOUNTPOINT}" ]]
-  then
-    echo-warning "MOUNTPOINT is not defined"
-    FAILED=1
-  fi
-  return ${FAILED}
+log-success () {
+  log-timestamp
+  echo -e "${GREEN}${DIM}DONE${RESET} ${GREEN}✓${RESET} $1" >&2
 }
+
+log-critical () {
+  if [[ "${LOG_LEVEL}" -gt 5 ]]
+  then
+    return
+  fi
+  log-timestamp
+  echo -e "${RED}CRIT${RESET} ${RED}!${RESET} $1" >&2
+}
+
+log-error () {
+  if [[ "${LOG_LEVEL}" -gt 4 ]]
+  then
+    return
+  fi
+  log-timestamp
+  echo -e "${RED}${DIM}ERRO${RESET} ${RED}!${RESET} $1" >&2
+}
+
+log-warning () {
+  if [[ "${LOG_LEVEL}" -gt 3 ]]
+  then
+    return
+  fi
+  log-timestamp
+  echo -e "${YELLOW}${DIM}WARN${RESET} ${YELLOW}⚠${RESET} $1" >&2
+}
+
+log-information () {
+  if [[ "${LOG_LEVEL}" -gt 2 ]]
+  then
+    return
+  fi
+  log-timestamp
+  echo -e "${BLUE}${DIM}INFO${RESET} ${BLUE}i${RESET} $1" >&2
+}
+
+log-debug () {
+  if [[ "${LOG_LEVEL}" -gt 1 ]]
+  then
+    return
+  fi
+  log-timestamp
+  echo -e "${DIM}DBUG *${RESET} $1" >&2
+}
+
+log-trace () {
+  if [[ "${LOG_LEVEL}" -gt 0 ]]
+  then
+    return
+  fi
+  log-timestamp
+  echo -e "${DARK_GRAY}TRAC ↶${RESET} $1" >&2
+}
+
+# Validate environment variables
+ISSUES=()
+if [[ -z "${EXPECTED_IP}" ]]
+then
+  ISSUES+=("EXPECTED_IP")
+fi
+if [[ -z "${MOUNTPOINT}" ]]
+then
+  ISSUES+=("MOUNTPOINT")
+fi
+if [[ "${#ISSUES[@]}" -gt 0 ]]
+then
+  log-error "Missing environment variables: ${ISSUES[*]}"
+  log-critical "Unable to continue"
+  exit 1
+fi
 
 check-mount () {
   if [[ ! -d "${MOUNTPOINT}" ]]
   then
-    echo-warning "${MOUNTPOINT} is not a directory"
+    log-warning "${MOUNTPOINT} is not a directory"
     return 1
   fi
   FILE_COUNT=$(ls -1A "${MOUNTPOINT}" | wc -l)
-  if [[ "${FILE_COUNT}" -gt "0" ]]
+  if [[ "${FILE_COUNT}" -gt 0 ]]
   then
-    echo-success "${MOUNTPOINT} contains ${FILE_COUNT} files or directories"
+    log-debug "${MOUNTPOINT} contains ${FILE_COUNT} files or directories"
     return 0
   else
-    echo-warning "${MOUNTPOINT} is empty"
+    log-warning "${MOUNTPOINT} is empty"
     return 1
   fi
 }
@@ -48,53 +138,24 @@ check-ip () {
   IP=$(curl --fail --silent --show-error https://ipinfo.io/ip)
   if [[ "${IP}" == "${EXPECTED_IP}" ]]
   then
-    echo-success "External IP is ${IP}"
+    log-debug "External IP is ${IP}"
     return 0
   else
-    echo-warning "External IP is ${IP}"
-    echo-subsidiary "Expected ${EXPECTED_IP}"
+    log-warning "External IP is ${IP}. Expected: ${EXPECTED_IP}"
     return 1
   fi
 }
 
-echo-success () {
-  echo -e "\e[32m ✔  $1\e[0m" >&2
-}
-
-echo-information () {
-  echo -e "\e[34m ⓘ  $1\e[0m" >&2
-}
-
-echo-error () {
-  echo -e "\e[31m !  $1\e[0m" >&2
-}
-
-echo-warning () {
-  echo -e "\e[33m ⚠  $1\e[0m" >&2
-}
-
-echo-subsidiary () {
-  echo -e "\e[37m    $1\e[0m" >&2
-}
-
-echo-step () {
-  echo -e "\e[0m »  $1\e[0m" >&2
-}
-
 for ((ATTEMPT=1; ATTEMPT <= MAX_ATTEMPTS; ATTEMPT++))
 do
-  if [[ "${ATTEMPT}" -gt 1 ]]
+  if check-mount && check-ip
   then
-    echo-step "Retrying in ${INTERVAL}"
-    sleep "${INTERVAL}"
-  fi
-
-  echo-step "Attempt ${ATTEMPT} of ${MAX_ATTEMPTS}"
-
-  if run-checks
-  then
+    log-success "All checks passed"
     exit 0
   fi
+
+  log-information "Retrying in ${INTERVAL}. Attempt ${ATTEMPT} of ${MAX_ATTEMPTS}"
+  sleep "${INTERVAL}"
 done
 
 echo-error "Max number of attempts reached"

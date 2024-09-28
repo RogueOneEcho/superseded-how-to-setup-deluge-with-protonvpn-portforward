@@ -35,15 +35,16 @@ RED="\e[31m"
 GREEN="\e[32m"
 YELLOW="\e[33m"
 BLUE="\e[34m"
+PURPLE="\e[35m"
 DARK_GRAY="\e[90m"
 
 log-timestamp () {
-  echo -ne "${DIM}$(date +"%Y-%m-%dT%H:%M:%S%:z")${RESET} " >&2
+  echo -ne "${DIM}$(date +"%Y-%m-%d %H:%M:%S%:z")${RESET} " >&2
 }
 
 log-success () {
   log-timestamp
-  echo -e "${GREEN}${DIM}DONE${RESET} ${GREEN}✓${RESET} $1" >&2
+  echo -e "${GREEN}DONE${RESET} ${GREEN}✓${RESET} $1" >&2
 }
 
 log-critical () {
@@ -52,7 +53,7 @@ log-critical () {
     return
   fi
   log-timestamp
-  echo -e "${RED}CRIT${RESET} ${RED}!${RESET} $1" >&2
+  echo -e "${PURPLE}CRIT${RESET} ${PURPLE}⭍${RESET} $1" >&2
 }
 
 log-error () {
@@ -61,7 +62,7 @@ log-error () {
     return
   fi
   log-timestamp
-  echo -e "${RED}${DIM}ERRO${RESET} ${RED}!${RESET} $1" >&2
+  echo -e "${RED}ERRO${RESET} ${RED}!${RESET} $1" >&2
 }
 
 log-warning () {
@@ -70,7 +71,7 @@ log-warning () {
     return
   fi
   log-timestamp
-  echo -e "${YELLOW}${DIM}WARN${RESET} ${YELLOW}⚠${RESET} $1" >&2
+  echo -e "${YELLOW}WARN${RESET} ${YELLOW}△${RESET} $1" >&2
 }
 
 log-information () {
@@ -79,7 +80,7 @@ log-information () {
     return
   fi
   log-timestamp
-  echo -e "${BLUE}${DIM}INFO${RESET} ${BLUE}i${RESET} $1" >&2
+  echo -e "${BLUE}INFO${RESET} ${BLUE}○${RESET} $1" >&2
 }
 
 log-debug () {
@@ -97,7 +98,7 @@ log-trace () {
     return
   fi
   log-timestamp
-  echo -e "${DARK_GRAY}TRAC ↶${RESET} $1" >&2
+  echo -e "${DIM}TRAC ↩${RESET} $1" >&2
 }
 
 # Validate environment variables

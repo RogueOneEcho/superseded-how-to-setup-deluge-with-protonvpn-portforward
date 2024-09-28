@@ -84,6 +84,8 @@ services:
     depends_on:
       preflight:
         condition: service_completed_successfully
+    healthcheck:
+      test: curl --fail http://localhost:9696 || exit 1
     restart: unless-stopped
 
   caddy:
@@ -98,4 +100,6 @@ services:
     - /data/caddy:/config
     env_file:
     - caddy/.env
+    healthcheck:
+      test: curl --fail http://localhost/healthcheck || exit 1
     restart: unless-stopped

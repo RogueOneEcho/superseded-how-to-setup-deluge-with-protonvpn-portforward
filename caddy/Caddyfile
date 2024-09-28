@@ -15,7 +15,14 @@ prowlarr.example.com {
 :80, :443 {
   templates
   header Content-Type text/plain
-  respond 200 {
+  respond /healthcheck 200 {
+    body <<EOF
+    Hello {{.RemoteIP}},
+    Everything is fine.
+    EOF
+    close
+  }
+  respond 421 {
     body <<EOF
     Hello {{.RemoteIP}},
     Unfortunately we couldn't find a match for {{.Host}}.

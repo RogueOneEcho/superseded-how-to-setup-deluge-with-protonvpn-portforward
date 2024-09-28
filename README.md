@@ -107,7 +107,7 @@ In `docker-compose.yml` find the `vpn` service and update the `environment` vari
 - `PrivateKey` to `WIREGUARD_PRIVATE_KEY`
 - `Address` to `WIREGUARD_ADDRESSES`
 - `PublicKey` to `WIREGUARD_PUBLIC_KEY`
-- The IP address from `Endpoint` to `WIREGUARD_ENDPOINT` - `149.88.27.235` in this example.
+- The IP address from `Endpoint` to `WIREGUARD_ENDPOINT` - `203.0.113.1` in this example.
 - The port from `Endpoint` to `WIREGUARD_PORT` - `51820` in this example.
 
 *For other VPN providers, you can follow their documentation to create a WireGuard configuration, or refer to the [Gluetun documentation](https://github.com/qdm12/gluetun-wiki).*
@@ -120,7 +120,9 @@ If you're using a VPN provider who use pre-shared keys then also:
 
 In `docker-compose.yml` find the `preflight` service and update the `environment` variables by copying the values from the WireGuard configuration file:
 
-- Copy IP address from `Endpoint` to `EXPECTED_IP` - `149.88.27.235` in this example.
+- Copy IP address from `Endpoint` to `EXPECTED_IP` - `203.0.113.1` in this example.
+
+NOTE: Sometimes the VPN will actually use a different IP address to the endpoint, so you may need to adjust this value. Check the logs of `monitor` when you reach step 8 to see the IP address that is actually being used and copy it.
 
 ### 4. Update the `monitor` environment variables
 

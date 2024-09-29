@@ -273,9 +273,9 @@ docker compose up -d
 
 ## Next steps
 
-[Part 2 of this guide adds Caddy](tree/part-2-caddy) so you can access the Deluge web client accessible via a custom domain with HTTPS/TLS encryption.
+[Part 2 of this guide adds Caddy](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/tree/part-2-caddy) so you can access the Deluge web client accessible via a custom domain with HTTPS/TLS encryption.
 
-[Part 3 of this guide adds Prowlarr, cross-seed, and fertilizer](tree/part-3-prowlarr-cross-seed-fertilizer) for a completely automated setup with cross seeding.
+[Part 3 of this guide adds Prowlarr, cross-seed, and fertilizer](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/tree/part-3-prowlarr-cross-seed-fertilizer) for a completely automated setup with cross seeding.
 
 ## Acknowledgements
 

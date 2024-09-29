@@ -15,11 +15,9 @@ This part adds Prowlarr, cross-seed, and fertilizer to the stack for automatic c
 
 ## How it works
 
-### Caddy
+### Prowlarr
 
-The `caddy` service runs [Caddy](https://github.com/qdm12/gluetun) which:
-- makes the Deluge web client accessible via a custom domain such as `deluge.example.com`
-- automatically obtains and renews HTTPS/TLS certificates from Let's Encrypt using [Cloudflare DNS validation](https://github.com/caddy-dns/cloudflare).
+The `prowlarr` service runs [Prowlarr](https://prowlarr.com/) to manage indexers.
 
 ## Getting started
 

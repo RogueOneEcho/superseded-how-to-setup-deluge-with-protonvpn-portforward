@@ -1,8 +1,8 @@
 services:
 
-  vpn:
-    container_name: vpn
-    hostname: vpn
+  tunnel:
+    container_name: tunnel
+    hostname: tunnel
     image: ghcr.io/qdm12/gluetun
     # Uncomment the following to make ports public
     #ports:
@@ -35,9 +35,9 @@ services:
       EXPECTED_IP: 203.0.113.1
       LOG_LEVEL: debug
     depends_on:
-      vpn:
+      tunnel:
         condition: service_healthy
-    network_mode: "service:vpn"
+    network_mode: "service:tunnel"
 
   monitor:
     container_name: monitor
@@ -48,7 +48,7 @@ services:
       RETRY: 2s
     env_file:
     - monitor/.env
-    network_mode: "service:vpn"
+    network_mode: "service:tunnel"
     restart: unless-stopped
     healthcheck:
       test: ls /healthy
@@ -63,7 +63,7 @@ services:
       PUID: 1000
       PGID: 1000
       TZ: Etc/UTC
-    network_mode: "service:vpn"
+    network_mode: "service:tunnel"
     depends_on:
       preflight:
         condition: service_completed_successfully
@@ -80,7 +80,7 @@ services:
       PUID: 1000
       PGID: 1000
       TZ: Etc/UTC
-    network_mode: "service:vpn"
+    network_mode: "service:tunnel"
     depends_on:
       preflight:
         condition: service_completed_successfully

@@ -1,8 +1,10 @@
 # Deluge via Proton VPN with port forwarding
 
-This guide shows how to run Deluge via ProtonVPN with automatic port forwarding.
+This guide shows how to make Deluge connectable via Proton VPN with port forwarding.
 
-Due to the flexibility of [Gluetun](https://github.com/qdm12/gluetun) it can be easily adapt it to work with any wireguard or OpenVPN VPN provider by following their [wiki documentation](https://github.com/qdm12/gluetun-wiki).
+All services are run in Docker containers and managed with Docker Compose.
+
+*Due to the flexibility of [Gluetun](https://github.com/qdm12/gluetun) the guide can be easily adapted to work with any wireguard or OpenVPN based VPN provider by referring to the [Gluetun wiki documentation](https://github.com/qdm12/gluetun-wiki).*
 
 *Prior knowledge of Docker, Deluge, Prowlarr, and linuxserver.io containers are assumed.*
 
@@ -55,11 +57,11 @@ sequenceDiagram
 
 ```
 
-### VPN
+### Gluetun
 
-The `vpn` service runs  [Gluetun](https://github.com/qdm12/gluetun) which handles all the networking, connecting to the VPN and obtaining a forwarded port.
+The `tunnel` service runs  [Gluetun](https://github.com/qdm12/gluetun) which handles all the networking, connecting to the VPN and obtaining a forwarded port.
 
-The other services use `vpn` as their network due to `network_mode: "service:vpn"`.
+The other services use `tunnel` as their network due to `network_mode: "service:tunnel"`.
 
 ### Preflight
 
@@ -138,9 +140,9 @@ Endpoint = 203.0.113.1:51820
 ```
 
 
-### 2. Update the `vpn` environment variables
+### 2. Update the `tunnel` environment variables
 
-In `docker-compose.yml` find the `vpn` service and update the `environment` variables by copying the values from the WireGuard configuration file:
+In `docker-compose.yml` find the `tunnel` service and update the `environment` variables by copying the values from the WireGuard configuration file:
 
 - `PrivateKey` to `WIREGUARD_PRIVATE_KEY`
 - `Address` to `WIREGUARD_ADDRESSES`
@@ -239,19 +241,19 @@ docker compose up
 
 ### 8. Follow the logs
 
-Follow the `vpn` logs to ensure the VPN connection is successful.
+Follow the `tunnel` logs to ensure Gluetun successfully connects to Proton VPN.
 
 ```bash
-docker compose logs -f vpn
+docker compose logs -f tunnel
 ```
 
-Follow the `preflight` logs to ensure the VPN connection is successful and the mountpoint is correct:
+Follow the `preflight` logs to ensure the external IP address is correct and the mountpoint is valid:
 
 ```bash
 docker compose logs -f preflight
 ```
 
-Follow the `monitor` logs to ensure `gluetun` was able to get a forwarded port and set it in `deluge`:
+Follow the `monitor` logs to ensure Monitor was able to get the forwarded port from Gluetun and set the Deluge listen port:
 
 ```bash
 docker compose logs -f monitor

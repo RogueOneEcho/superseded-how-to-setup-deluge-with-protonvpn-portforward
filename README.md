@@ -40,13 +40,19 @@ Check the `user`, `group`, `PUID`, `PGID` settings in the `environment` section 
 ### 3. Configure `cross-seed`
 
 `cross-seed` is highly configurable and they have great documentation. Refer to:
-- [Getting Started](https://www.cross-seed.org/docs/basics/getting-started)
+- [Getting started](https://www.cross-seed.org/docs/basics/getting-started)
 - [Options](https://www.cross-seed.org/docs/basics/options#all-options)
 - [v6 migration guide](https://www.cross-seed.org/docs/v6-migration)
 
-[Ask for help in GitHub Discussions](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/discussions) if you get stuck.
+[Ask for help in GitHub Discussions](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/discussions) if you get stuck, or add a comment to [issue #3](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/issues/3) if you want this simplified.
 
-### 4. Start the services
+### 4. Add automatic cross-seed searches to Deluge
+
+[Follow these steps](https://www.cross-seed.org/docs/basics/daemon#deluge)
+
+[Ask for help in GitHub Discussions](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/discussions) if you get stuck, or add a comment to [issue #2](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/issues/2) if you want this simplified.
+
+### 5. Start the services
 
 Start up the docker compose services:
 

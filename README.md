@@ -72,7 +72,3 @@ docker compose logs -f caddy
 2. Re-read the guide
 3. [Ask for help in GitHub Discussions](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/discussions)
 4. [Create an issue](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/issues)
-
-## Next steps
-
-[Part 3 of this guide adds Prowlarr, cross-seed, and fertilizer](tree/part-3-prowlarr-cross-seed-fertilizer) for a completely automated setup with cross seeding.

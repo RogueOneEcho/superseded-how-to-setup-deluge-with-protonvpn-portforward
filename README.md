@@ -1,6 +1,8 @@
 # Deluge via Proton VPN with port forwarding
 
-This guide shows how to make Deluge connectable via Proton VPN with port forwarding.
+This is part 1 of the series: [Deluge via Proton VPN with port forwarding](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward).
+
+This part shows how to make Deluge connectable via Proton VPN with port forwarding.
 
 All services are run in Docker containers and managed with Docker Compose.
 
@@ -270,12 +272,6 @@ docker compose up -d
 2. Re-read the guide
 3. [Ask for help in GitHub Discussions](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/discussions)
 4. [Create an issue](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/issues)
-
-## Next steps
-
-[Part 2 of this guide adds Caddy](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/tree/part-2-caddy) so you can access the Deluge web client accessible via a custom domain with HTTPS/TLS encryption.
-
-[Part 3 of this guide adds Prowlarr, cross-seed, and fertilizer](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/tree/part-3-prowlarr-cross-seed-fertilizer) for a completely automated setup with cross seeding.
 
 ## Acknowledgements
 

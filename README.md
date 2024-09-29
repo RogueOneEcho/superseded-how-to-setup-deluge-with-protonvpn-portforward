@@ -52,7 +52,13 @@ Check the `user`, `group`, `PUID`, `PGID` settings in the `environment` section 
 
 [Ask for help in GitHub Discussions](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/discussions) if you get stuck, or add a comment to [issue #2](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/issues/2) if you want this simplified.
 
-### 5. Start the services
+### 5. Configure `fertilizer`
+
+**This step isn't yet documented**
+
+Add a comment to #4 and/or #5 if you want this completed sooner.
+
+### 6. Start the services
 
 Start up the docker compose services:
 

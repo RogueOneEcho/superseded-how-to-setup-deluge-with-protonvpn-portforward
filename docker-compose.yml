@@ -87,3 +87,18 @@ services:
     healthcheck:
       test: curl --fail http://localhost:9696 || exit 1
     restart: unless-stopped
+
+  cross-seed:
+    image: ghcr.io/cross-seed/cross-seed:6.0.0-27
+    container_name: cross-seed
+    user: 1000:1000
+    volumes:
+    - /data/cross-seed/config:/config
+    - /data/cross-seed/data:/cross-seeds
+    - /data/deluge/state:/torrents:ro
+    - /media:/media
+    command: daemon
+    depends_on:
+    - deluge
+    - prowlarr
+    restart: no

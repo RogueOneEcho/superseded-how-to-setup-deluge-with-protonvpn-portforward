@@ -17,6 +17,44 @@ Due to the flexibility of [Gluetun](https://github.com/qdm12/gluetun) it can be 
 
 ## How it works
 
+```mermaid
+sequenceDiagram
+  participant public as Public Internet
+  participant vpn as Proton VPN <br/> (or other VPN Provider)
+  participant docker as Docker
+  public <<->> vpn: Public internet traffic
+
+  create participant tunnel as Gluetun
+  docker --> tunnel: Gluetun starts
+  tunnel <<->> vpn: Gluetun opens connection to Proton VPN <br/> via WireGuard protocol
+
+  create participant pre as Preflight
+  docker --> pre: Preflight starts after Gluetun
+  pre <<->> public: Preflight connects to https://ipinfo.io/ip <br /> to determine external IP address
+  destroy pre
+  pre --> docker: Preflight stop with success or failure code
+
+  create participant deluge as Deluge
+  docker --> deluge: Deluge starts only if Preflight exits successfully
+
+  deluge <<-->> public: Deluge can download via the VPN over any outgoing port <br /> but is not connectable to upload without <br/> a forwarded incoming/listen port
+
+  create participant monitor as Monitor
+  docker --> monitor: Monitor started at same time as Gluetun (but is only now relevant)
+
+  tunnel <<->> vpn: Gluetun gets a forwarded port from <br /> Proton VPN via the natpmp protocol
+
+  loop On start and then every 5 minutes (configurable)
+    monitor ->> tunnel: Monitor gets the forwarded port <br /> from the Gluetun API
+    alt If the forwarded port has changed
+      monitor ->> deluge: Monitor sets the Deluge listen port <br /> via the Deluge Web API
+    end
+  end
+
+  deluge <<-->> public: Deluge is now connectable and can upload <br/> via the a forwarded incoming/listen port
+
+```
+
 ### VPN
 
 The `vpn` service runs  [Gluetun](https://github.com/qdm12/gluetun) which handles all the networking, connecting to the VPN and obtaining a forwarded port.

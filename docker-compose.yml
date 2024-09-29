@@ -70,36 +70,3 @@ services:
     healthcheck:
       test: curl --fail http://localhost:8112 || exit 1
     restart: unless-stopped
-
-  prowlarr:
-    container_name: prowlarr
-    image: lscr.io/linuxserver/prowlarr:develop
-    volumes:
-    - /data/prowlarr:/config
-    environment:
-      PUID: 1000
-      PGID: 1000
-      TZ: Etc/UTC
-    network_mode: "service:tunnel"
-    depends_on:
-      preflight:
-        condition: service_completed_successfully
-    healthcheck:
-      test: curl --fail http://localhost:9696 || exit 1
-    restart: unless-stopped
-
-  caddy:
-    container_name: caddy
-    build: caddy
-    ports:
-    - "80:80"
-    - "443:443"
-    - "443:443/udp"
-    volumes:
-    - /data/caddy-data:/data
-    - /data/caddy:/config
-    env_file:
-    - caddy/.env
-    healthcheck:
-      test: curl --fail http://localhost/healthcheck || exit 1
-    restart: unless-stopped

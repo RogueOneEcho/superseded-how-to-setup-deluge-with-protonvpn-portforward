@@ -1,0 +1,28 @@
+{
+  admin off
+  acme_dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+  email {env.LETSENCRYPT_EMAIL}
+}
+
+deluge.example.com {
+  reverse_proxy tunnel:8112
+}
+
+:80, :443 {
+  templates
+  header Content-Type text/plain
+  respond /healthcheck 200 {
+    body <<EOF
+    Hello {{.RemoteIP}},
+    Everything is fine.
+    EOF
+    close
+  }
+  respond 421 {
+    body <<EOF
+    Hello {{.RemoteIP}},
+    Unfortunately we couldn't find a match for {{.Host}}.
+    EOF
+    close
+  }
+}

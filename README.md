@@ -1,267 +1,69 @@
-# Deluge via Proton VPN with port forwarding
+# Part 2: Use a custom domain with HTTPS/TLS to access Deluge using Caddy
 
-This guide shows how to make Deluge connectable via Proton VPN with port forwarding.
+This guide follows on from [Part 1: Deluge via Proton VPN with port forwarding](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward).
 
-All services are run in Docker containers and managed with Docker Compose.
+This guide adds Caddy to the stack making the Deluge web client publicly accessible via a custom domain with HTTPS/TLS encryption.
 
-*Due to the flexibility of [Gluetun](https://github.com/qdm12/gluetun) the guide can be easily adapted to work with any wireguard or OpenVPN based VPN provider by referring to the [Gluetun wiki documentation](https://github.com/qdm12/gluetun-wiki).*
-
-*Prior knowledge of Docker, Deluge and linuxserver.io containers are assumed.*
+*It is assumed you are using Cloudflare for DNS. If not then refer to the Caddy documentation for your provider:*
+- [How to use DNS provider modules in Caddy 2](https://caddy.community/t/how-to-use-dns-provider-modules-in-caddy-2/8148)
+- [Automatic HTTPS](https://caddyserver.com/docs/automatic-https)
+- [HTTPS quick-start](https://caddyserver.com/docs/quick-starts/https)
+- [acme_dns reference](https://caddyserver.com/docs/caddyfile/options#acme-dns)
 
 ## Technologies
-- [Docker Compose](https://docs.docker.com/compose/install/)
-- [Deluge - linuxserver.io container](https://fleet.linuxserver.io/image?name=linuxserver/deluge)
-- [Gluetun](https://github.com/qdm12/gluetun)
-- [Proton VPN](https://protonvpn.com/)
-- [WireGuard](https://www.wireguard.com/)
+- [Caddy](https://caddyserver.com/) as a reverse proxy.
+- [Cloudflare](https://www.cloudflare.com/) for DNS validation.
 
 ## How it works
 
-```mermaid
-sequenceDiagram
-  participant public as Public Internet
-  participant vpn as Proton VPN <br/> (or other VPN Provider)
-  participant docker as Docker
-  public <<->> vpn: Public internet traffic
+### Caddy
 
-  create participant tunnel as Gluetun
-  docker --> tunnel: Gluetun starts
-  tunnel <<->> vpn: Gluetun opens connection to Proton VPN <br/> via WireGuard protocol
-
-  create participant pre as Preflight
-  docker --> pre: Preflight starts after Gluetun
-  pre <<->> public: Preflight connects to https://ipinfo.io/ip <br /> to determine external IP address
-  destroy pre
-  pre --> docker: Preflight stop with success or failure code
-
-  create participant deluge as Deluge
-  docker --> deluge: Deluge starts only if Preflight exits successfully
-
-  deluge <<-->> public: Deluge can download via the VPN over any outgoing port <br /> but is not connectable to upload without <br/> a forwarded incoming/listen port
-
-  create participant monitor as Monitor
-  docker --> monitor: Monitor started at same time as Gluetun (but is only now relevant)
-
-  tunnel <<->> vpn: Gluetun gets a forwarded port from <br /> Proton VPN via the natpmp protocol
-
-  loop On start and then every 5 minutes (configurable)
-    monitor ->> tunnel: Monitor gets the forwarded port <br /> from the Gluetun API
-    alt If the forwarded port has changed
-      monitor ->> deluge: Monitor sets the Deluge listen port <br /> via the Deluge Web API
-    end
-  end
-
-  deluge <<-->> public: Deluge is now connectable and can upload <br/> via the a forwarded incoming/listen port
-
-```
-
-### Gluetun
-
-The `tunnel` service runs [Gluetun](https://github.com/qdm12/gluetun) which:
-- tunnels network traffic via the VPN
-- obtains a forwarded port from the VPN provider via the natpmp protocol
-
-The other services use `tunnel` as their network due to `network_mode: "service:tunnel"`.
-
-### Preflight
-
-The `preflight` service runs a [bash script](preflight/preflight) to check:
-- the mountpoint is working
-- the external ip https://ipinfo.io/ip is reported as the VPN.
-
-Only after `preflight` exits successfully do the `deluge` and `prowlarr` services start due to:
-
-```yaml
-depends_on:
-  preflight:
-    condition: service_completed_successfully
-```
-
-### Monitor
-
-The `monitor` service runs a [bash script](monitor/monitor) that obtains the forwarded port from the gluetun API and sets the listening port of `deluge`.
-
-If the monitor script fails it retries waits for a duration defined as `RETRY`, until it's successful. Then it waits a duration defined by `INTERVAL` before running again, therefore if the forwarded port happens to change it will be updated in `deluge`.
-
-### Deluge
-
-The `deluge` service runs the [Deluge](https://deluge-torrent.org/) web client and daemon as a [linux-server.io container](https://fleet.linuxserver.io/image?name=linuxserver/deluge).
+The `caddy` service runs [Caddy](https://github.com/qdm12/gluetun) which:
+- makes the Deluge web client accessible via a custom domain such as `deluge.example.com`
+- automatically obtains and renews HTTPS/TLS certificates from Let's Encrypt using [Cloudflare DNS validation](https://github.com/caddy-dns/cloudflare).
 
 ## Getting started
 
-### 1. Create a WireGuard configuration
+### 1. Set the DNS records
 
-From the ProtonVPN website, [create a WireGuard configuration](
-https://account.proton.me/u/3/vpn/WireGuard).
+Add an `A` record for your domain pointing to your server's IP address.
 
-Use a memorable `device/certificate name` so you can easily revoke or extend it later.
+Be aware that this is publicly exposing your IP address and that it's NOT going via your VPN Provider. For extra security there are a few options, but these are outside the scope of this guide:
 
-Set the platform to `GNU/Linux`.
+- use Cloudflare to hide your server's IP address by enabling the Cloudflare proxy.
+- [create a personal VPN](https://www.digitalocean.com/community/tutorials/how-to-set-up-wireguard-on-ubuntu-20-04) on your server and bind Docker to only use the local VPN IP address. That way your services are connectable whenever you're connected to your personal VPN.
 
-Set `Level for NetShield blocker filtering` to `No filter` - probably not required.
+### 2. Obtain a Cloudflare API token
 
-Set `Moderate NAT` to `Yes` - probably not required.
+[By following these steps](https://github.com/caddy-dns/cloudflare/blob/master/README.md#configuration)
 
-Set `NAT-PMP (Port Forwarding)` to `Yes` - **important**.
+### 3. Set the Caddy environment variables
 
-Set `VPN Accelerator` to `Yes` - probably not required.
+Copy the `caddy/.env.example` file to `caddy/.env` and set:
 
-Select a server location from `Standard server configs` that has the `⇆` icon for `P2P`. Avoid any TOR servers.
+- `CLOUDFLARE_API_TOKEN` to your Cloudflare API token
+- `LETSENCRYPT_EMAIL` to your email address
 
-Save the file as you won't be able to read the private key again.
+### 4. Update the `Caddyfile`
 
-The file should look something like this:
+Edit `caddy/Caddyfile` replacing `example.com` with your domain.
 
-```ini
-[Interface]
-# Key for deluge
-# Bouncing = 14
-# NetShield = 0
-# Moderate NAT = on
-# NAT-PMP (Port Forwarding) = on
-# VPN Accelerator = on
-PrivateKey = CIGiABCDEFGkNDgXCiyidFc61ybHJ1S5ufvUd2NNG3k=
-Address = 10.2.0.2/32
-DNS = 10.2.0.1
+### 5. Start the services
 
-[Peer]
-# CH#999
-PublicKey = n+45suABCDEFGuZWtCnzGkXNBCgJB3wFZYIlBltpORM=
-AllowedIPs = 0.0.0.0/0
-Endpoint = 203.0.113.1:51820
-```
+In part 1 we only edited `docker-compose.yml` and `.env` files.
 
+However, in this part we've modified the `Caddyfile` which is copied into the `caddy` image during the build stage therefore any changes to the `Caddyfile` require the `caddy` service to be rebuilt with the `--build` flag.
 
-### 2. Update the `tunnel` environment variables
-
-In `docker-compose.yml` find the `tunnel` service and update the `environment` variables by copying the values from the WireGuard configuration file:
-
-- `PrivateKey` to `WIREGUARD_PRIVATE_KEY`
-- `Address` to `WIREGUARD_ADDRESSES`
-- `PublicKey` to `WIREGUARD_PUBLIC_KEY`
-- The IP address from `Endpoint` to `WIREGUARD_ENDPOINT` - `203.0.113.1` in this example.
-- The port from `Endpoint` to `WIREGUARD_PORT` - `51820` in this example.
-
-*For other VPN providers, you can follow their documentation to create a WireGuard configuration, or refer to the [Gluetun documentation](https://github.com/qdm12/gluetun-wiki).*
-
-If you're using a VPN provider who use pre-shared keys then also:
-
-- `PreSharedKey` to `WIREGUARD_PRESHARED_KEY`
-
-### 3. Update the `preflight` environment variables
-
-In `docker-compose.yml` find the `preflight` service and update the `environment` variables by copying the values from the WireGuard configuration file:
-
-- Copy IP address from `Endpoint` to `EXPECTED_IP` - `203.0.113.1` in this example.
-
-NOTE: Sometimes the VPN will actually use a different IP address to the endpoint, so you may need to adjust this value. Check the logs of `monitor` when you reach step 8 to see the IP address that is actually being used and copy it.
-
-### 4. Update the `monitor` environment variables
-
-The `monitor` service loads environment variables from both the `environment` section of `docker-compose.yml` and a `monitor/.env` file. This is better practice for storing sensitive data such as passwords, you can even go a step further and use [secrets](https://docs.docker.com/compose/how-tos/use-secrets/) but that's out of scope here.
-
-Copy the `monitor/.env.example` file to `monitor/.env` and set the `DELUGE_PASSWORD` variable to your deluge web client password. If you've not set a password already then the default is `deluge`.
+Re-build and start up the docker compose services:
 
 ```bash
-cp monitor/.env.example monitor/.env
+docker compose up -d --build
 ```
 
-You can also adjust the frequency and verbosity of the monitor: in `docker-compose.yml` find the `monitor` service and update the `environment` variables as follows:
-
-While getting started and testing the following values work well:
-
-```yml
-LOG_LEVEL: info
-INTERVAL: 30s
-RETRY: 2s
-```
-
-But those are verbose and frequent, so for production use:
-
-```yml
-LOG_LEVEL: warn
-INTERVAL: 5m
-RETRY: 2s
-```
-
-`INTERVAL` is the time between successful runs of the monitor script, and `RETRY` is the time to wait before retrying when an error is encountered.
-
-### 5. Set the volume paths in `docker-compose.yml`
-
-Check the `volumes` section of each service in `docker-compose.yml` and update the paths to match your host system.
-
-The default is to use `/media` for anything downloaded in `deluge` and `/data` for configuration and data volumes of each service. You can change these to suit your needs.
-
-NOTE: By default deluge will download to `/downloads`, so this will need to be modified to `/media/deluge` (or similar) in the deluge web client settings.
-
-If you're using a value other than `/media` then also update the `MOUNTPOINT` environment variable of `preflight`.
-
-### 6. Start the services
-
-Start up the docker compose services:
+Follow the `caddy` logs to ensure Caddy is able to complete the DNS challenge for a Let's Encrypt certificate:
 
 ```bash
-docker compose up -d
-```
-
-Check the status of the services:
-
-```bash
-docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
-```
-
-Continuously watch the statuses (updated every 2 seconds):
-
-```bash
-watch --interval 2 docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
-```
-
-Follow the `tunnel` logs to ensure Gluetun successfully connects to Proton VPN.
-
-```bash
-docker compose logs -f tunnel
-```
-
-Follow the `preflight` logs to ensure the external IP address is correct and the mountpoint is valid:
-
-```bash
-docker compose logs -f preflight
-```
-
-Follow the `monitor` logs to ensure Monitor was able to get the forwarded port from Gluetun and set the Deluge listen port:
-
-```bash
-docker compose logs -f monitor
-```
-
-Follow all logs to ensure everything is running smoothly, although this will be incredibly verbose:
-
-```bash
-docker compose logs -f
-```
-
-To stop all the services:
-
-```bash
-docker compose down
-```
-
-### 7. Access the Deluge Web UI
-
-Once the services are running you can access the Deluge web client at http://localhost:8112.
-
-In the Deluge web client you'll want to change a few settings:
-- `Preferences` -> `Downloads` set `Download to` to `/media/deluge` or however you configured it in step 5.
-- `Preferences` -> `Network` under `Incoming Port` uncheck `Random`.
-- `Preferences` -> `Interface` update the `WebUI Password` then return to step 4 and update the `monitor/.env` with the new password.
-
-If you want to use the Deluge desktop client:
-- `Preferences` -> `Daemon` check `Allow Remote Connections`.
-
-Once everything is running smoothly go back to step 4 and update the `monitor` settings for production use and restart the services with the updated configuration:
-
-```bash
-docker compose up -d
+docker compose logs -f caddy
 ```
 
 ## Troubleshooting
@@ -273,14 +75,4 @@ docker compose up -d
 
 ## Next steps
 
-[Part 2 of this guide adds Caddy](tree/part-2-caddy) so you can access the Deluge web client accessible via a custom domain with HTTPS/TLS encryption.
-
 [Part 3 of this guide adds Prowlarr, cross-seed, and fertilizer](tree/part-3-prowlarr-cross-seed-fertilizer) for a completely automated setup with cross seeding.
-
-## Acknowledgements
-
-This guide is based on the great work of [xitation](https://github.com/xitation/protonvpn-deluge-gluetun-portforward).
-
-The following may be useful for other clients:
-- [Transmission](https://github.com/haugene/docker-transmission-openvpn) by haugene
-- [qBittorrent](https://github.com/mjmeli/qbittorrent-port-forward-gluetun-server) by mjmeli

@@ -2,15 +2,17 @@
 
 To keep things clear this guide is split into multiple parts with each building on the last, allowing you to pick and choose the level of complexity you want to add.
 
-1. [Deluge via Proton VPN with port forwarding](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/tree/part-1)
+- Part 1 [Deluge via Proton VPN with port forwarding](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/tree/part-1)
 
-2. [Automated cross seeding with Prowlarr, cross-seed, and fertilizer](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/tree/part-2)
+- Part 2 [Automated cross seeding with Prowlarr, cross-seed, and fertilizer](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/tree/part-2)
 
-3. [Use a custom domain and HTTPS/TLS with Caddy](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/tree/part-3)
+- Part 3 [Use a custom domain and HTTPS/TLS with Caddy](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/tree/part-3)
 
-## Getting started
+## Downloading the code
 
-Simply clone the repository and checkout the branch for the part you want to follow:
+Simply clone the repository and checkout the branch for the part you want to follow.
+
+The `README.md` in each branch gives a detailed guide on how it works and how to get started.
 
 ```bash
 git clone https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward.git

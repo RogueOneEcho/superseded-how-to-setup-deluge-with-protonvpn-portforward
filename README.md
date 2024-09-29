@@ -2,11 +2,11 @@
 
 [Add a reaction or comment to issue #1 if you'd like to see this completed sooner.](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/issues/1)
 
-# Part 3: Automated cross seeding with Prowlarr, cross-seed, and fertilizer
+# Automated cross seeding with Prowlarr, cross-seed, and fertilizer
 
-This guide follows on from [Part 2 of Deluge via Proton VPN with port forwarding](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/tree/part-2-caddy).
+This is part 2 of the series: [Deluge via Proton VPN with port forwarding](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward).
 
-This guide adds Prowlarr, cross-seed, and fertilizer to the stack for automatic cross seeding.
+This part adds Prowlarr, cross-seed, and fertilizer to the stack for automatic cross seeding.
 
 ## Technologies
 - [Prowlarr](https://prowlarr.com/) for managing indexers.

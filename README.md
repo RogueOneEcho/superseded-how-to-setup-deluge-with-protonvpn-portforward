@@ -1,8 +1,8 @@
-# Part 2: Use a custom domain with HTTPS/TLS to access Deluge using Caddy
+# Use a custom domain and HTTPS/TLS with Caddy
 
-This guide follows on from [Part 1: Deluge via Proton VPN with port forwarding](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward).
+This is part 3 of the series: [Deluge via Proton VPN with port forwarding](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward).
 
-This guide adds Caddy to the stack making the Deluge web client publicly accessible via a custom domain with HTTPS/TLS encryption.
+This part adds Caddy to the stack making the Deluge web client publicly accessible via a custom domain with HTTPS/TLS encryption.
 
 *It is assumed you are using Cloudflare for DNS. If not then refer to the Caddy documentation for your provider:*
 - [How to use DNS provider modules in Caddy 2](https://caddy.community/t/how-to-use-dns-provider-modules-in-caddy-2/8148)

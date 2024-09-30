@@ -103,9 +103,10 @@ log-trace () {
 
 # Validate environment variables
 ISSUES=()
-if [[ -z "${EXPECTED_IP}" ]]
+if [[ -z "${ALLOWED_IP}" && -z "${DISALLOWED_IP}" ]]
 then
-  ISSUES+=("EXPECTED_IP")
+  ISSUES+=("DISALLOWED_IP")
+  ISSUES+=("ALLOWED_IP")
 fi
 if [[ -z "${MOUNTPOINT}" ]]
 then
@@ -139,14 +140,24 @@ check-mount () {
 
 check-ip () {
   IP=$(curl --fail --silent --show-error https://ipinfo.io/ip)
-  if [[ "${IP}" == "${EXPECTED_IP}" ]]
+  if [[ -n "${DISALLOWED_IP}" ]]
   then
-    log-debug "External IP is ${IP}"
-    return 0
-  else
-    log-warning "External IP is ${IP}. Expected: ${EXPECTED_IP}"
-    return 1
+    if [[ "${IP}" == "${DISALLOWED_IP}" ]]
+    then
+      log-warning "External IP is ${IP} which is disallowed"
+      return 1
+    fi
   fi
+  if [[ -n "${ALLOWED_IP}" ]]
+  then
+    if [[ "${IP}" != "${ALLOWED_IP}" ]]
+    then
+      log-warning "External IP is ${IP}. Expected: ${ALLOWED_IP}"
+      return 1
+    fi
+  fi
+  log-debug "External IP is ${IP}"
+  return 0
 }
 
 for ((ATTEMPT=1; ATTEMPT <= MAX_ATTEMPTS; ATTEMPT++))

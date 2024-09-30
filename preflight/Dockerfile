@@ -1,5 +1,5 @@
 FROM alpine
 RUN apk add --no-cache bash curl jq
-COPY preflight /root/preflight
-RUN chmod +x /root/preflight
-ENTRYPOINT /root/preflight
+COPY preflight /preflight
+RUN chmod a+x /preflight
+ENTRYPOINT /preflight

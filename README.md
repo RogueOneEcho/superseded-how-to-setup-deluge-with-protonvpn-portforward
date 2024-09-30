@@ -157,6 +157,9 @@ Set the environment variables by copying the values from the WireGuard configura
 - The port from `Endpoint` to `WIREGUARD_PORT` - `51820` in this example.
 
 > [!TIP]
+> The `WIREGUARD_PRIVATE_KEY` works for any Proton VPN server, so Gluetun can automatically pick a server for you if you prefer. Just copy the `dynamic.env` file instead.
+
+> [!TIP]
 > For other VPN providers, you can follow their documentation to create a WireGuard configuration, or refer to the [Gluetun documentation](https://github.com/qdm12/gluetun-wiki).
 
 If you're using a VPN provider who use pre-shared keys then also:
@@ -253,7 +256,10 @@ Copy `preflight/.env.example` to `preflight/.env`:
 ```bash
 cp preflight/.env.example preflight/.env
 ```
-Set `EXPECTED_IP` to the External IP seen in the `preflight` logs.
+Set `ALLOWED_IP` to the External IP seen in the `preflight` logs.
+
+> [!TIP]
+> If you're letting Gluetun pick a server for you then leave `ALLOWED_IP` blank and instead set the value of `DISALLOWED_IP` to your non-VPN external IP address to ensure it doesn't leak.
 
 Start up the `preflight` again, this time it should exit successfully.
 

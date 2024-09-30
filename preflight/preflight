@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MAX_ATTEMPTS="${MAX_ATTEMPTS-3}"
-INTERVAL="${INTERVAL-"10s"}"
+INTERVAL="${INTERVAL-"3s"}"
 
 if [[ "${LOG_LEVEL}" == "trace" ]]
 then
@@ -130,7 +130,9 @@ check-mount () {
     log-debug "${MOUNTPOINT} contains ${FILE_COUNT} files or directories"
     return 0
   else
-    log-warning "${MOUNTPOINT} is empty"
+    log-warning "${MOUNTPOINT} appears to be empty"
+    log-warning "Ensure the directory has permissions for user: $(id)"
+    log-warning "and add at least one file with: touch ${MOUNTPOINT}/.not-empty"
     return 1
   fi
 }
@@ -155,9 +157,13 @@ do
     exit 0
   fi
 
+  if [[ "${ATTEMPT}" -eq "${MAX_ATTEMPTS}" ]]
+  then
+    break
+  fi
   log-information "Retrying in ${INTERVAL}. Attempt ${ATTEMPT} of ${MAX_ATTEMPTS}"
   sleep "${INTERVAL}"
 done
 
-echo-error "Max number of attempts reached"
+log-error "Max number of attempts reached"
 exit 1

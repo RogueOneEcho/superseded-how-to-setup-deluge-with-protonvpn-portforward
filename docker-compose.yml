@@ -29,9 +29,9 @@ services:
     container_name: preflight
     build: preflight
     volumes:
-    - /media:/media
+    - /srv/shared:/srv/shared:ro
     environment:
-      MOUNTPOINT: /media
+      MOUNTPOINT: /srv/shared
       EXPECTED_IP: 203.0.113.1
       LOG_LEVEL: debug
     depends_on:
@@ -57,8 +57,8 @@ services:
     container_name: deluge
     image: lscr.io/linuxserver/deluge
     volumes:
-    - /data/deluge:/config
-    - /media:/media
+    - /srv/deluge:/config:Z
+    - /srv/shared:/srv/shared:z
     environment:
       PUID: 1000
       PGID: 1000
@@ -75,7 +75,7 @@ services:
     container_name: prowlarr
     image: lscr.io/linuxserver/prowlarr:develop
     volumes:
-    - /data/prowlarr:/config
+    - /srv/prowlarr:/config:Z
     environment:
       PUID: 1000
       PGID: 1000
@@ -93,10 +93,10 @@ services:
     container_name: cross-seed
     user: 1000:1000
     volumes:
-    - /data/cross-seed/config:/config
-    - /data/cross-seed/data:/cross-seeds
-    - /data/deluge/state:/torrents:ro
-    - /media:/media
+    - /srv/cross-seed/config:/config:Z
+    - /srv/cross-seed/data:/cross-seeds:Z
+    - /srv/deluge/state:/torrents:Z
+    - /srv/shared:/srv/shared:z
     command: daemon
     depends_on:
     - deluge

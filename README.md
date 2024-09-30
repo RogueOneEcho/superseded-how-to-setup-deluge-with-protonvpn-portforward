@@ -6,9 +6,11 @@ This part shows how to make Deluge connectable via Proton VPN with port forwardi
 
 All services are run in Docker containers and managed with Docker Compose.
 
-*Due to the flexibility of [Gluetun](https://github.com/qdm12/gluetun) the guide can be easily adapted to work with any wireguard or OpenVPN based VPN provider by referring to the [Gluetun wiki documentation](https://github.com/qdm12/gluetun-wiki).*
+> [!TIP]
+> Due to the flexibility of [Gluetun](https://github.com/qdm12/gluetun) the guide can be easily adapted to work with any wireguard or OpenVPN based VPN provider by referring to the [Gluetun wiki documentation](https://github.com/qdm12/gluetun-wiki).
 
-*Prior knowledge of Docker, Deluge and linuxserver.io containers are assumed.*
+> [!IMPORTANT]
+> Prior knowledge of Docker, Deluge and linuxserver.io containers are assumed.
 
 ## Technologies
 - [Docker Compose](https://docs.docker.com/compose/install/)
@@ -68,7 +70,7 @@ The other services use `tunnel` as their network due to `network_mode: "service:
 ### Preflight
 
 The `preflight` service runs a [bash script](preflight/preflight) to check:
-- the mountpoint is working
+- the shared mountpoint is working
 - the external ip https://ipinfo.io/ip is reported as the VPN.
 
 Only after `preflight` exits successfully do the `deluge` and `prowlarr` services start due to:
@@ -81,13 +83,15 @@ depends_on:
 
 ### Monitor
 
-The `monitor` service runs a [bash script](monitor/monitor) that obtains the forwarded port from the gluetun API and sets the listening port of `deluge`.
+The `monitor` service runs a [bash script](monitor/monitor) that obtains the forwarded port from the Gluetun API and sets the incoming listening port of `deluge`.
 
-If the monitor script fails it retries waits for a duration defined as `RETRY`, until it's successful. Then it waits a duration defined by `INTERVAL` before running again, therefore if the forwarded port happens to change it will be updated in `deluge`.
+If the monitor script fails it waits for a duration defined as `RETRY` then retries. Once it's successful it waits a duration defined by `INTERVAL` before running again, therefore if the forwarded port happens to change it will be updated in `deluge`.
 
 ### Deluge
 
 The `deluge` service runs the [Deluge](https://deluge-torrent.org/) web client and daemon as a [linux-server.io container](https://fleet.linuxserver.io/image?name=linuxserver/deluge).
+
+The Deluge web client is available at http://localhost:8112.
 
 ## Getting started
 
@@ -133,10 +137,18 @@ AllowedIPs = 0.0.0.0/0
 Endpoint = 203.0.113.1:51820
 ```
 
-
 ### 2. Update the `tunnel` environment variables
 
-In `docker-compose.yml` find the `tunnel` service and update the `environment` variables by copying the values from the WireGuard configuration file:
+> [!NOTE]
+> Docker has a few ways to pass environment variables to containers, in this guide we're using `.env` files [learn more about them here](https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/#env-file-syntax).
+
+Copy `tunnel/.env.example` to `tunnel/.env`:
+
+```bash
+cp tunnel/.env.example tunnel/.env
+```
+
+Set the environment variables by copying the values from the WireGuard configuration file:
 
 - `PrivateKey` to `WIREGUARD_PRIVATE_KEY`
 - `Address` to `WIREGUARD_ADDRESSES`
@@ -144,131 +156,164 @@ In `docker-compose.yml` find the `tunnel` service and update the `environment` v
 - The IP address from `Endpoint` to `WIREGUARD_ENDPOINT` - `203.0.113.1` in this example.
 - The port from `Endpoint` to `WIREGUARD_PORT` - `51820` in this example.
 
-*For other VPN providers, you can follow their documentation to create a WireGuard configuration, or refer to the [Gluetun documentation](https://github.com/qdm12/gluetun-wiki).*
+> [!TIP]
+> For other VPN providers, you can follow their documentation to create a WireGuard configuration, or refer to the [Gluetun documentation](https://github.com/qdm12/gluetun-wiki).
 
 If you're using a VPN provider who use pre-shared keys then also:
 
 - `PreSharedKey` to `WIREGUARD_PRESHARED_KEY`
 
-### 3. Update the `preflight` environment variables
+### 3. Update the `monitor` environment variables
 
-In `docker-compose.yml` find the `preflight` service and update the `environment` variables by copying the values from the WireGuard configuration file:
-
-- Copy IP address from `Endpoint` to `EXPECTED_IP` - `203.0.113.1` in this example.
-
-NOTE: Sometimes the VPN will actually use a different IP address to the endpoint, so you may need to adjust this value. Check the logs of `monitor` when you reach step 8 to see the IP address that is actually being used and copy it.
-
-### 4. Update the `monitor` environment variables
-
-The `monitor` service loads environment variables from both the `environment` section of `docker-compose.yml` and a `monitor/.env` file. This is better practice for storing sensitive data such as passwords, you can even go a step further and use [secrets](https://docs.docker.com/compose/how-tos/use-secrets/) but that's out of scope here.
-
-Copy the `monitor/.env.example` file to `monitor/.env` and set the `DELUGE_PASSWORD` variable to your deluge web client password. If you've not set a password already then the default is `deluge`.
+Copy `monitor/.env.example` to `monitor/.env`:
 
 ```bash
 cp monitor/.env.example monitor/.env
 ```
 
-You can also adjust the frequency and verbosity of the monitor: in `docker-compose.yml` find the `monitor` service and update the `environment` variables as follows:
+Set the `DELUGE_PASSWORD` variable to your desired Deluge Web Client password.
 
-While getting started and testing the following values work well:
+> [!TIP]
+> The frequency and verbosity of the monitor script can also be adjusted.
+> While setting up `LOG_LEVEL=debug` is useful but once everything is working it's best to set it to `warn` to reduce the log size.
 
-```yml
-LOG_LEVEL: info
-INTERVAL: 30s
-RETRY: 2s
+### 4. Update the shared environment variables
+
+Copy `.env.example` to `.env`:
+
+```bash
+cp .env.example .env
 ```
 
-But those are verbose and frequent, so for production use:
+These environment variables will be shared by multiple services, they're based on the [linuxserver.io](https://github.com/linuxserver/docker-deluge?tab=readme-ov-file#parameters).
 
-```yml
-LOG_LEVEL: warn
-INTERVAL: 5m
-RETRY: 2s
+Run the `id` command to determine the values your user id and group id. Typically, these will both be `1000` but they can vary.
+
+Set the `UID` to the user id number return by the `id` command.
+
+Set the `GID` to the group id number return by the `id` command.
+
+For example if `id` returns:
+
+```
+uid=1234(your_user) gid=5678(your_group)
 ```
 
-`INTERVAL` is the time between successful runs of the monitor script, and `RETRY` is the time to wait before retrying when an error is encountered.
+Then use:
 
-### 5. Set the volume paths in `docker-compose.yml`
+```ini
+UID=1234
+GID=5678
+```
+
+> [!TIP]
+> You can set the timezone value `TZ` to your [TZ identifier](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List), but it's best practice to stick with `UTC` for servers to reduce confusion when reading logs.
+
+### 5. Set the volume paths
 
 Check the `volumes` section of each service in `docker-compose.yml` and update the paths to match your preferences.
 
-In this example `/srv/shared` will be a shared by different services. Deluge will download to `/srv/shared/deluge` so in the future Sonarr and Radarr can read the files Deluge downloads and subsequently create hard links under `/srv/shared/sonarr` and `/srv/shared/radarr`.
+In this example `/srv/shared` will be shared by different services. Deluge will download to `/srv/shared/deluge` so in the future Sonarr and Radarr can mount `/srv/shared`, read the files Deluge downloads and subsequently create hard links under `/srv/shared/sonarr` and `/srv/shared/radarr`.
 
-NOTE: By default deluge will download to `/downloads`, so this will need to be modified to `/srv/shared` (or similar) in the deluge web client settings.
+> [!NOTE]
+> If you're using a directory other than `/srv/shared` then also update the `MOUNTPOINT` environment variable of `preflight`.
 
-If you're using a value other than `/srv/shared` then also update the `MOUNTPOINT` environment variable of `preflight`.
+### 6. Start the tunnel service
 
-### 6. Start the services
-
-Start up the docker compose services:
+Start up the `tunnel` service in detached mode and wait for it to report `Healthy`:
 
 ```bash
-docker compose up -d
+docker compose up -d --wait tunnel
 ```
 
-Check the status of the services:
+> [!TIP]
+> If `tunnel` is `Unhealthy` or fails you've probably not configured `tunnel/.env` correctly, check the logs:
+> ```bash
+> docker compose logs tunnel -f
+> ```
+
+### 7. Start the preflight service
+
+Preflight is going to check the `/srv/shared` directory so make sure it contains at least one file:
+
+```bash
+touch /srv/shared/.not-empty
+```
+
+Start up the `preflight` service in attached mode
+
+```bash
+docker compose up preflight
+```
+
+At this stage the `preflight` service will fail as we haven't set the environment variables because we didn't know the external IP address of the VPN.
+
+Copy `preflight/.env.example` to `preflight/.env`:
+
+```bash
+cp preflight/.env.example preflight/.env
+```
+Set `EXPECTED_IP` to the External IP seen in the `preflight` logs.
+
+Start up the `preflight` again, this time it should exit successfully.
+
+### 8. Start the remaining services
+
+Start up all the services in detached mode and wait for them to report `Healthy`:
+
+```bash
+docker compose up -d --wait
+```
+
+Deluge should start and report `Healthy`, but `monitor` will be `Unhealthy` as it can't authenticate with Deluge.
+
+### 9. Access the Deluge Web UI
+
+Once Deluge is `Healthy` you can access the Deluge web client at http://localhost:8112.
+
+The default password is `deluge`.
+
+In the Deluge web client you'll want to change a few settings:
+- `Preferences` -> `Downloads` set `Download to` to `/srv/shared/deluge` or however you configured it.
+- `Preferences` -> `Network` under `Incoming Port` uncheck `Random`.
+- `Preferences` -> `Interface` update the `WebUI Password` to the value you defined as `DELUGE_PASSWORD`.
+
+If you want to use the Deluge desktop client:
+- `Preferences` -> `Daemon` check `Allow Remote Connections`.
+
+Now the Web UI password has been set the `monitor` service should be able to authenticate with Deluge.
+
+Check the status of all services:
 
 ```bash
 docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
 ```
 
-Continuously watch the statuses (updated every 2 seconds):
+Wait for monitor to report `Healthy`
 
-```bash
-watch --interval 2 docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
-```
+> [!TIP]
+> If it takes a while you can follow the monitor logs:
+> ```bash
+> docker logs monitor -f
+> ```
 
-Follow the `tunnel` logs to ensure Gluetun successfully connects to Proton VPN.
-
-```bash
-docker compose logs -f tunnel
-```
-
-Follow the `preflight` logs to ensure the external IP address is correct and the mountpoint is valid:
-
-```bash
-docker compose logs -f preflight
-```
-
-Follow the `monitor` logs to ensure Monitor was able to get the forwarded port from Gluetun and set the Deluge listen port:
-
-```bash
-docker compose logs -f monitor
-```
-
-Follow all logs to ensure everything is running smoothly, although this will be incredibly verbose:
-
-```bash
-docker compose logs -f
-```
-
-To stop all the services:
-
-```bash
-docker compose down
-```
-
-### 7. Access the Deluge Web UI
-
-Once the services are running you can access the Deluge web client at http://localhost:8112.
-
-In the Deluge web client you'll want to change a few settings:
-- `Preferences` -> `Downloads` set `Download to` to `/srv/shared/deluge` or however you configured it in step 5.
-- `Preferences` -> `Network` under `Incoming Port` uncheck `Random`.
-- `Preferences` -> `Interface` update the `WebUI Password` then return to step 4 and update the `monitor/.env` with the new password.
-
-If you want to use the Deluge desktop client:
-- `Preferences` -> `Daemon` check `Allow Remote Connections`.
-
-Once everything is running smoothly go back to step 4 and update the `monitor` settings for production use and restart the services with the updated configuration:
-
-```bash
-docker compose up -d
-```
+Head back to the Deluge Web UI and you should see the incoming port has been set.
 
 ## Troubleshooting
 
-1. Check the logs
+1. Check the logs using:
+
+```bash
+docker compose logs [SERVICE_NAME] -f
+```
+
+The logging verbosity for `monitor` and `preflight` can be adjusted by the `LOG_LEVEL` environment variable.
+
+- `warn` is recommended for production use, only showing warnings and errors
+- `info` will give an overview of what's happening
+- `debug` provides insight into each set
+- `trace` is detailed logging for development purposes
+
 2. Re-read the guide
 3. [Ask for help in GitHub Discussions](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/discussions)
 4. [Create an issue](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/issues)

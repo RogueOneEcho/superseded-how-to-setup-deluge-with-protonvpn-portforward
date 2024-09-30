@@ -4,23 +4,13 @@ services:
     container_name: tunnel
     hostname: tunnel
     image: ghcr.io/qdm12/gluetun
-    # Uncomment the following to make ports public
-    #ports:
-    #- "0.0.0.0:8112:8112" # Deluge web client
+    ports:
+    - "0.0.0.0:8112:8112" # Deluge web client
     #- "0.0.0.0:58846:58846" # Deluge daemon
-    #- "0.0.0.0:9696:9696"  # Prowlarr
     devices:
     - /dev/net/tun:/dev/net/tun
-    environment:
-      WIREGUARD_PRIVATE_KEY: CIGiABCDEFGkNDgXCiyidFc61ybHJ1S5ufvUd2NNG3k=
-      WIREGUARD_ADDRESSES: 10.2.0.2/32
-      WIREGUARD_PUBLIC_KEY: n+45suABCDEFGuZWtCnzGkXNBCgJB3wFZYIlBltpORM=
-      VPN_ENDPOINT_IP: 203.0.113.1
-      VPN_ENDPOINT_PORT: 51820
-      VPN_SERVICE_PROVIDER: custom
-      VPN_TYPE: wireguard
-      VPN_PORT_FORWARDING: on
-      VPN_PORT_FORWARDING_PROVIDER: protonvpn
+    env_file:
+    - tunnel/.env
     cap_add:
     - NET_ADMIN
     restart: unless-stopped
@@ -29,11 +19,9 @@ services:
     container_name: preflight
     build: preflight
     volumes:
-    - /srv/shared:/srv/shared:ro
-    environment:
-      MOUNTPOINT: /srv/shared
-      EXPECTED_IP: 203.0.113.1
-      LOG_LEVEL: debug
+    - /srv/shared:/srv/shared:z
+    env_file:
+    - preflight/.env
     depends_on:
       tunnel:
         condition: service_healthy
@@ -42,16 +30,15 @@ services:
   monitor:
     container_name: monitor
     build: monitor
-    environment:
-      LOG_LEVEL: warn
-      INTERVAL: 5m
-      RETRY: 2s
     env_file:
     - monitor/.env
+    depends_on:
+      preflight:
+        condition: service_completed_successfully
     network_mode: "service:tunnel"
-    restart: unless-stopped
     healthcheck:
       test: ls /healthy
+    restart: unless-stopped
 
   deluge:
     container_name: deluge
@@ -59,14 +46,12 @@ services:
     volumes:
     - /srv/deluge:/config:Z
     - /srv/shared:/srv/shared:z
-    environment:
-      PUID: 1000
-      PGID: 1000
-      TZ: Etc/UTC
     network_mode: "service:tunnel"
     depends_on:
       preflight:
         condition: service_completed_successfully
+    env_file:
+    - .env
     healthcheck:
       test: curl --fail http://localhost:8112 || exit 1
     restart: unless-stopped

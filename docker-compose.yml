@@ -96,8 +96,8 @@ services:
     - "443:443"
     - "443:443/udp"
     volumes:
-    - /data/caddy/data:/data/caddy
-    - /data/caddy/config:/config/caddy
+    - /srv/caddy/data:/data/caddy:Z
+    - /srv/caddy/config:/config/caddy:Z
     env_file:
     - caddy/.env
     healthcheck:

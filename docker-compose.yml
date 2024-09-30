@@ -3,7 +3,7 @@ services:
   tunnel:
     container_name: tunnel
     hostname: tunnel
-    image: ghcr.io/qdm12/gluetun
+    build: tunnel
     ports:
     - "0.0.0.0:8112:8112" # Deluge web client
     #- "0.0.0.0:58846:58846" # Deluge daemon

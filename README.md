@@ -190,13 +190,13 @@ RETRY: 2s
 
 ### 5. Set the volume paths in `docker-compose.yml`
 
-Check the `volumes` section of each service in `docker-compose.yml` and update the paths to match your host system.
+Check the `volumes` section of each service in `docker-compose.yml` and update the paths to match your preferences.
 
-The default is to use `/media` for anything downloaded in `deluge` and `/data` for configuration and data volumes of each service. You can change these to suit your needs.
+In this example `/srv/shared` will be a shared by different services. Deluge will download to `/srv/shared/deluge` so in the future Sonarr and Radarr can read the files Deluge downloads and subsequently create hard links under `/srv/shared/sonarr` and `/srv/shared/radarr`.
 
-NOTE: By default deluge will download to `/downloads`, so this will need to be modified to `/media/deluge` (or similar) in the deluge web client settings.
+NOTE: By default deluge will download to `/downloads`, so this will need to be modified to `/srv/shared` (or similar) in the deluge web client settings.
 
-If you're using a value other than `/media` then also update the `MOUNTPOINT` environment variable of `preflight`.
+If you're using a value other than `/srv/shared` then also update the `MOUNTPOINT` environment variable of `preflight`.
 
 ### 6. Start the services
 
@@ -253,7 +253,7 @@ docker compose down
 Once the services are running you can access the Deluge web client at http://localhost:8112.
 
 In the Deluge web client you'll want to change a few settings:
-- `Preferences` -> `Downloads` set `Download to` to `/media/deluge` or however you configured it in step 5.
+- `Preferences` -> `Downloads` set `Download to` to `/srv/shared/deluge` or however you configured it in step 5.
 - `Preferences` -> `Network` under `Incoming Port` uncheck `Random`.
 - `Preferences` -> `Interface` update the `WebUI Password` then return to step 4 and update the `monitor/.env` with the new password.
 

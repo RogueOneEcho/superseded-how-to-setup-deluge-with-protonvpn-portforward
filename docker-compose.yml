@@ -93,6 +93,7 @@ services:
       --torznab ${CROSS_SEED_TORZNAB}
       --deluge-rpc-url ${CROSS_SEED_DELUGE_RPC_URL}
       --torrent-dir /torrents
+      --include-single-episodes true
     network_mode: "service:tunnel"
     depends_on:
     - deluge

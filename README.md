@@ -182,10 +182,10 @@ Set the `DELUGE_PASSWORD` variable to your desired Deluge Web Client password.
 
 ### 4. Update the shared environment variables
 
-Copy `.env.example` to `.env`:
+Copy `shared/.env.example` to `shared/.env`:
 
 ```bash
-cp .env.example .env
+cp shared/.env.example shared/.env
 ```
 
 These environment variables will be shared by multiple services, they're based on the [linuxserver.io](https://github.com/linuxserver/docker-deluge?tab=readme-ov-file#parameters).

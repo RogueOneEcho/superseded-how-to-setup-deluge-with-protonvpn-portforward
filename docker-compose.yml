@@ -21,7 +21,6 @@ services:
       context: preflight
       additional_contexts:
         shared: shared
-
     volumes:
     - /srv/shared:/srv/shared:z
     env_file:

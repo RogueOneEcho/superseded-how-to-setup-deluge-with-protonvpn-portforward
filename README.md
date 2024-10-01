@@ -37,6 +37,24 @@ To minimize requests a cache is used to store the results of each search.
 
 ## Getting started
 
+### 0. Checkout the `part-2` branch
+
+In part 1 you checked out the `part-1` branch and modified some `.env` files.
+
+The `.env` files are ignored by git so you should be able to switch branches without any issues.
+
+Check the status of the working directory to ensure it's in a clean state:
+
+```bash
+git status
+```
+
+Then checkout the `part-2` branch to add the additional services to the stack:
+
+```bash
+git checkout part-2
+```
+
 ### 1. Start the services
 
 We can jump straight in and start the services:
@@ -133,6 +151,10 @@ Test it out by adding a new torrent to Deluge and watch the logs of the `cross-s
 docker logs -f cross-seed
 docker logs -f fertilizer
 ```
+
+## Next steps
+
+-  Part 3 [Use a custom domain and HTTPS/TLS with Caddy](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/tree/part-3)
 
 ## Troubleshooting
 

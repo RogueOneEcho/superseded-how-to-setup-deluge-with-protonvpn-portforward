@@ -86,67 +86,27 @@ Update `CROSS_SEED_DELUGE_RPC_URL` to include your Deluge web client password.
 > As this uses HTTP basic auth your password can't include special characters.
 > Use only letters and numbers but increase the length (at least 30 characters) to make it more secure.
 
+Set `CROSS_SEED_API_KEY` to a random string of characters that's at least 24 characters.
+
 Start the `cross-seed` service again and follow its logs to ensure it's running correctly:
 
 ```bash
 docker compose up -d cross-seed && docker compose logs -f cross-seed
 ```
 
-### 4. Add automatic cross-seed searches to Deluge
+### 3. Add automatic cross-seed searches to Deluge
 
-[Follow these steps](https://www.cross-seed.org/docs/basics/daemon#deluge)
+> ![NOTE]
+> cross-seed needs to be informed of new torrents that are downloaded by Deluge so it can immediately search for them.
+>
+> This is done by configuring Deluge to make an API request to `cross-seed` when a new torrent is added.
+>
+> This requires a shell script be included in the Deluge container. Therefore, in this part we're using a custom build for
+> the `deluge` service.
 
-[Ask for help in GitHub Discussions](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/discussions) if you get stuck, or add a comment to [issue #2](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/issues/2) if you want this simplified.
+In the Deluge Web UI go to `Preferences > Plugins` and enable the `Execute` and `Label` plugins.
 
-### 5. Configure `fertilizer`
-
-**This step isn't yet documented**
-
-Add a comment to #4 and/or #5 if you want this completed sooner.
-
-### 6. Start the services
-
-Start up the docker compose services:
-
-```bash
-docker compose up -d
-```
-
-Check the status of the services:
-
-```bash
-docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
-```
-
-Continuously watch the statuses (updated every 2 seconds):
-
-```bash
-watch --interval 2 docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
-```
-
-Follow the `prowlarr` logs to ensure Prowlarr is running:
-
-```bash
-docker compose logs -f prowlarr
-```
-
-Follow the `cross-seed` logs to ensure your cross-seed config is valid:
-
-```bash
-docker compose logs -f cross-seed
-```
-
-Follow all logs to ensure everything is running smoothly, although this will be incredibly verbose:
-
-```bash
-docker compose logs -f
-```
-
-To stop all the services:
-
-```bash
-docker compose down
-```
+Then under `Execute` add a new command with `Event` set to `Torrent Complete` and `Command` set to `/cross-seed`.
 
 ## Troubleshooting
 

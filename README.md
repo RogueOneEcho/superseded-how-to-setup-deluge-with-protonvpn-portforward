@@ -294,6 +294,10 @@ Wait for monitor to report `Healthy`
 
 Head back to the Deluge Web UI and you should see the incoming port has been set.
 
+## Next steps
+
+-  Part 2 [Automated cross seeding with Prowlarr, cross-seed, and fertilizer](https://github.com/RogueOneEcho/how-to-setup-deluge-with-protonvpn-portforward/tree/part-2)
+
 ## Troubleshooting
 
 1. Check the logs using:

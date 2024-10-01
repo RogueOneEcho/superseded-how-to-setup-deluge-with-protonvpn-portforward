@@ -49,7 +49,12 @@ services:
 
   deluge:
     container_name: deluge
-    image: lscr.io/linuxserver/deluge
+    build:
+      context: deluge
+      additional_contexts:
+        shared: shared
+      args:
+        CROSS_SEED_API_KEY: ${CROSS_SEED_API_KEY}
     volumes:
     - /srv/deluge:/config
     - /srv/shared:/srv/shared
@@ -95,6 +100,7 @@ services:
       daemon
       --torznab ${CROSS_SEED_TORZNAB}
       --deluge-rpc-url ${CROSS_SEED_DELUGE_RPC_URL}
+      --api-key ${CROSS_SEED_API_KEY}
       --torrent-dir /torrents
       --include-single-episodes true
     network_mode: "service:tunnel"

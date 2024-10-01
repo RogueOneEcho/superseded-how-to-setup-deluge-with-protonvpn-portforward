@@ -51,14 +51,16 @@ services:
     container_name: deluge
     image: lscr.io/linuxserver/deluge
     volumes:
-    - /srv/deluge:/config:Z
+    - /srv/deluge:/config:z
     - /srv/shared:/srv/shared:z
+    environment:
+      PUID: ${USER_ID}
+      PGID: ${GROUP_ID}
+      TZ: ${TIMEZONE}
     network_mode: "service:tunnel"
     depends_on:
       preflight:
         condition: service_completed_successfully
-    env_file:
-    - shared/.env
     healthcheck:
       test: curl --fail http://localhost:8112 || exit 1
     restart: unless-stopped
@@ -69,9 +71,9 @@ services:
     volumes:
     - /srv/prowlarr:/config:Z
     environment:
-      PUID: 1000
-      PGID: 1000
-      TZ: Etc/UTC
+      PUID: ${USER_ID}
+      PGID: ${GROUP_ID}
+      TZ: ${TIMEZONE}
     network_mode: "service:tunnel"
     depends_on:
       preflight:
@@ -82,11 +84,12 @@ services:
 
   cross-seed:
     image: ghcr.io/cross-seed/cross-seed:6.0.0-36
+    user: "${USER_ID}:${GROUP_ID}"
     container_name: cross-seed
     volumes:
-    - /srv/cross-seed/config:/config:Z
-    - /srv/cross-seed/data:/cross-seeds:Z
-    - /srv/deluge/state:/torrents:Z
+    - /srv/cross-seed/config:/config:z
+    - /srv/cross-seed/data:/cross-seeds:z
+    - /srv/deluge/state:/torrents:z,ro
     - /srv/shared:/srv/shared:z
     command: >
       daemon
@@ -96,8 +99,10 @@ services:
       --include-single-episodes true
     network_mode: "service:tunnel"
     depends_on:
-    - deluge
-    - prowlarr
+      deluge:
+        condition: service_healthy
+      prowlarr:
+        condition: service_healthy
     restart: no
 
   caddy:

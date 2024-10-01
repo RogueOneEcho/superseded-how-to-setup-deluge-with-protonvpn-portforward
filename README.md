@@ -26,12 +26,17 @@ The `caddy` service runs [Caddy](https://github.com/qdm12/gluetun) which:
 
 ### 1. Set the DNS records
 
-Add an `A` record for your domain pointing to your server's IP address.
+Add a `A` records for the sub-domains you intend to use pointing to your server's IP address.
 
-Be aware that this is publicly exposing your IP address and that it's NOT going via your VPN Provider. For extra security there are a few options, but these are outside the scope of this guide:
+For example: `deluge.example.com` and `prowlarr.example.com`
 
-- use Cloudflare to hide your server's IP address by enabling the Cloudflare proxy.
-- [create a personal VPN](https://www.digitalocean.com/community/tutorials/how-to-set-up-wireguard-on-ubuntu-20-04) on your server and bind Docker to only use the local VPN IP address. That way your services are connectable whenever you're connected to your personal VPN.
+> [!WARNING]
+> Be aware that this is publicly exposing your IP address and that it's NOT going via your VPN Provider.
+>
+> For extra security there are a few options, but these are outside the scope of this guide:
+>
+> - use Cloudflare to hide your server's IP address by enabling the Cloudflare proxy.
+> - [create a personal VPN](https://www.digitalocean.com/community/tutorials/how-to-set-up-wireguard-on-ubuntu-20-04) on your server and bind Docker to only use the local VPN IP address. That way your services are connectable whenever you're connected to your personal VPN.
 
 ### 2. Obtain a Cloudflare API token
 
@@ -43,27 +48,27 @@ Copy the `caddy/.env.example` file to `caddy/.env` and set:
 
 - `CLOUDFLARE_API_TOKEN` to your Cloudflare API token
 - `LETSENCRYPT_EMAIL` to your email address
+- `DELUGE_HOST` to the domain you want to use for the Deluge web client
+- `PROWLARR_HOST` to the domain you want to use for Prowlarr
 
-### 4. Update the `Caddyfile`
+### 4. Start the services
 
-Edit `caddy/Caddyfile` replacing `example.com` with your domain.
-
-### 5. Start the services
-
-In part 1 we only edited `docker-compose.yml` and `.env` files.
-
-However, in this part we've modified the `Caddyfile` which is copied into the `caddy` image during the build stage therefore any changes to the `Caddyfile` require the `caddy` service to be rebuilt with the `--build` flag.
-
-Re-build and start up the docker compose services:
+Start the services with:
 
 ```bash
-docker compose up -d --build
+docker compose up -d
 ```
 
 Follow the `caddy` logs to ensure Caddy is able to complete the DNS challenge for a Let's Encrypt certificate:
 
 ```bash
 docker compose logs -f caddy
+```
+
+Caddy doesn't use plain text logging so if you find that to confusing try this snippet to make the JSON readable:
+
+```bash
+docker logs caddy 2>&1 | jq --color-output | less -R
 ```
 
 ## Troubleshooting

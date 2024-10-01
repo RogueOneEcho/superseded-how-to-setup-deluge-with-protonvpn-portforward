@@ -4,8 +4,12 @@
   email {env.LETSENCRYPT_EMAIL}
 }
 
-deluge.example.com {
+{$DELUGE_HOST} {
   reverse_proxy tunnel:8112
+}
+
+{$PROWLARR_HOST} {
+  reverse_proxy tunnel:9696
 }
 
 :80, :443 {

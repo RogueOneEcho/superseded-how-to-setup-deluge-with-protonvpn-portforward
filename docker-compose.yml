@@ -4,10 +4,10 @@ services:
     container_name: tunnel
     hostname: tunnel
     build: tunnel
-    ports:
-    - "0.0.0.0:8112:8112" # Deluge web client
+    #ports:
+    #- "0.0.0.0:8112:8112" # Deluge web client
     #- "0.0.0.0:58846:58846" # Deluge daemon
-    - "0.0.0.0:9696:9696" # Prowlarr
+    #- "0.0.0.0:9696:9696" # Prowlarr
     devices:
     - /dev/net/tun:/dev/net/tun
     env_file:
@@ -137,8 +137,8 @@ services:
     - "443:443"
     - "443:443/udp"
     volumes:
-    - /srv/caddy/data:/data/caddy:Z
-    - /srv/caddy/config:/config/caddy:Z
+    - /srv/caddy/data:/data/caddy
+    - /srv/caddy/config:/config/caddy
     env_file:
     - caddy/.env
     healthcheck:

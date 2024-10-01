@@ -1,6 +1,6 @@
 FROM caddy:2.8-builder-alpine AS builder
 RUN xcaddy build \
-    --with github.com/caddy-dns/cloudflare@44030f9306f4815aceed3b042c7f3d2c2b110c97
+    --with github.com/caddy-dns/cloudflare@89f16b99c18ef49c8bb470a82f895bce01cbaece
 
 FROM caddy:2.8-alpine
 RUN apk add --no-cache curl

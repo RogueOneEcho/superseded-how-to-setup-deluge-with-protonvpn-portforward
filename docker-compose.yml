@@ -88,9 +88,9 @@ services:
     restart: unless-stopped
 
   cross-seed:
+    container_name: cross-seed
     image: ghcr.io/cross-seed/cross-seed:6.0.0-36
     user: "${USER_ID}:${GROUP_ID}"
-    container_name: cross-seed
     volumes:
     - /srv/cross-seed/config:/config
     - /srv/cross-seed/data:/cross-seeds
@@ -109,7 +109,25 @@ services:
         condition: service_healthy
       prowlarr:
         condition: service_healthy
-    restart: no
+    restart: unless-stopped
+
+  fertilizer:
+    container_name: fertilizer
+    build: fertilizer
+    user: "${USER_ID}:${GROUP_ID}"
+    volumes:
+    - /srv/fertilizer/config:/config
+    - /srv/deluge/state:/input:ro
+    - /srv/fertilizer/output:/output
+    - /srv/shared:/srv/shared
+    command: fertilizer -c /config.json -i /input -o /output --server
+    env_file:
+    - fertilizer/.env
+    network_mode: "service:tunnel"
+    depends_on:
+      deluge:
+        condition: service_healthy
+    restart: unless-stopped
 
   caddy:
     container_name: caddy

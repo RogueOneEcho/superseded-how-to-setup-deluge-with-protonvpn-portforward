@@ -32,7 +32,7 @@ Instead of connecting to the indexers directly all searches are done through Pro
 
 To minimize requests a cache is used to store the results of each search.
 
-> ![WARN]
+> [!WARNING]
 > cross-seed v6 is a pre-release of a major version so the configuration may change.
 
 ## Getting started
@@ -75,7 +75,7 @@ Add your indexers. If you need help with this then refer to the [Prowlarr quick 
 
 ### 2. Configure cross-seed
 
-> ![NOTE]
+> [!NOTE]
 > cross-seed doesn't support configuration by environment variables so as a workaround we're defining the environment variables
 > that are read by Docker Compose and passed to the container command line arguments.
 
@@ -87,7 +87,7 @@ cp .env.example .env
 
 Copy the `Torznab Url` of each indexer in Prowlarr to `CROSS_SEED_TORZNAB` with each URL separated by a space and append `?apikey=YOUR_API_KEY` to each one.
 
-> ![TIP]
+> [!TIP]
 > - The `Torznab Url` can be found in Prowlarr by clicking on the indexer and copying the `Torznab Url` from the `Details` tab.
 > - The API keycan be found in Prowlarr under  `Settings > General > Security > API Key`.
 > - Refer to the [cross-seed documentation for further guidance](https://www.cross-seed.org/docs/basics/options#torznab)
@@ -100,7 +100,7 @@ CROSS_SEED_TORZNAB="http://localhost:9696/1/api?apikey=YOUR_API_KEY http://local
 
 Update `CROSS_SEED_DELUGE_RPC_URL` to include your Deluge web client password.
 
-> ![CAUTION]
+> [!IMPORTANT]
 > As this uses HTTP basic auth your password can't include special characters.
 > Use only letters and numbers but increase the length (at least 30 characters) to make it more secure.
 
@@ -126,7 +126,7 @@ Set `DELUGE_RPC_URL` to the same value you used for `CROSS_SEED_DELUGE_RPC_URL` 
 
 ### 4. Configure Deluge to notify cross-seed and Fertilizer torrents are downloaded
 
-> ![NOTE]
+> [!NOTE]
 > Fertilizer and cross-seed need to be informed of new torrents downloaded by Deluge so they can immediately search for them.
 >
 > This is done by configuring Deluge to make an API request to cross-seed and Fertilizer when a new torrent finishes downloading.

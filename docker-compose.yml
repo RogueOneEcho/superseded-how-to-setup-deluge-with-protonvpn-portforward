@@ -17,7 +17,11 @@ services:
 
   preflight:
     container_name: preflight
-    build: preflight
+    build:
+      context: preflight
+      additional_contexts:
+        shared: shared
+
     volumes:
     - /srv/shared:/srv/shared:z
     env_file:
@@ -29,7 +33,10 @@ services:
 
   monitor:
     container_name: monitor
-    build: monitor
+    build:
+      context: monitor
+      additional_contexts:
+        shared: shared
     env_file:
     - monitor/.env
     depends_on:

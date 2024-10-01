@@ -1,5 +1,6 @@
 FROM alpine
 RUN apk add --no-cache bash curl jq
-COPY monitor /root/monitor
-RUN chmod +x /root/monitor
-ENTRYPOINT /root/monitor
+COPY --from=shared logging ./logging
+COPY monitor ./monitor
+RUN chmod a+x ./logging && chmod a+x ./monitor
+ENTRYPOINT ./monitor

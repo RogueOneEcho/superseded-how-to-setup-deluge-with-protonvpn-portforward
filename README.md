@@ -70,7 +70,7 @@ The other services use `tunnel` as their network due to `network_mode: "service:
 ### Preflight
 
 The `preflight` service runs a [bash script](preflight/preflight) to check:
-- the shared mountpoint is working
+- the `/srv/shared` is mounted. It does so by checking it contains at least one file
 - the external ip https://ipinfo.io/ip is reported as the VPN.
 
 Only after `preflight` exits successfully do the `deluge` and `prowlarr` services start due to:
@@ -212,16 +212,7 @@ GID=5678
 > [!TIP]
 > You can set the timezone value `TZ` to your [TZ identifier](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List), but it's best practice to stick with `UTC` for servers to reduce confusion when reading logs.
 
-### 5. Set the volume paths
-
-Check the `volumes` section of each service in `docker-compose.yml` and update the paths to match your preferences.
-
-In this example `/srv/shared` will be shared by different services. Deluge will download to `/srv/shared/deluge` so in the future Sonarr and Radarr can mount `/srv/shared`, read the files Deluge downloads and subsequently create hard links under `/srv/shared/sonarr` and `/srv/shared/radarr`.
-
-> [!NOTE]
-> If you're using a directory other than `/srv/shared` then also update the `MOUNTPOINT` environment variable of `preflight`.
-
-### 6. Start the tunnel service
+### 5. Start the tunnel service
 
 Start up the `tunnel` service in detached mode and wait for it to report `Healthy`:
 
@@ -235,7 +226,7 @@ docker compose up -d --wait tunnel
 > docker compose logs tunnel -f
 > ```
 
-### 7. Start the preflight service
+### 6. Start the preflight service
 
 Preflight is going to check the `/srv/shared` directory so make sure it contains at least one file:
 
@@ -263,7 +254,7 @@ Set `ALLOWED_IP` to the External IP seen in the `preflight` logs.
 
 Start up the `preflight` again, this time it should exit successfully.
 
-### 8. Start the remaining services
+### 7. Start the remaining services
 
 Start up all the services in detached mode and wait for them to report `Healthy`:
 
@@ -273,14 +264,14 @@ docker compose up -d --wait
 
 Deluge should start and report `Healthy`, but `monitor` will be `Unhealthy` as it can't authenticate with Deluge.
 
-### 9. Access the Deluge Web UI
+### 8. Access the Deluge Web UI
 
 Once Deluge is `Healthy` you can access the Deluge web client at http://localhost:8112.
 
 The default password is `deluge`.
 
 In the Deluge web client you'll want to change a few settings:
-- `Preferences` -> `Downloads` set `Download to` to `/srv/shared/deluge` or however you configured it.
+- `Preferences` -> `Downloads` set `Download to` to `/srv/shared/deluge`.
 - `Preferences` -> `Network` under `Incoming Port` uncheck `Random`.
 - `Preferences` -> `Interface` update the `WebUI Password` to the value you defined as `DELUGE_PASSWORD`.
 

@@ -57,7 +57,7 @@ services:
       preflight:
         condition: service_completed_successfully
     env_file:
-    - .env
+    - shared/.env
     healthcheck:
       test: curl --fail http://localhost:8112 || exit 1
     restart: unless-stopped

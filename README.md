@@ -94,19 +94,45 @@ Start the `cross-seed` service again and follow its logs to ensure it's running 
 docker compose up -d cross-seed && docker compose logs -f cross-seed
 ```
 
-### 3. Add automatic cross-seed searches to Deluge
+### 3. Configure Fertilizer
+
+Copy `fertilizer/.env.example` to `fertilizer/.env`:
+
+```bash
+cp fertilizer/.env.example fertilizer/.env
+```
+
+Set `RED_KEY` to your RED API Key - you can use the same key you added to Prowlarr.
+Set `OPS_KEY` to your OPS API Key - you can use the same key you added to Prowlarr.
+Set `DELUGE_RPC_URL` to the same value you used for `CROSS_SEED_DELUGE_RPC_URL` in step 2.`
+
+### 4. Configure Deluge to notify cross-seed and Fertilizer torrents are downloaded
 
 > ![NOTE]
-> cross-seed needs to be informed of new torrents that are downloaded by Deluge so it can immediately search for them.
+> Fertilizer and cross-seed need to be informed of new torrents downloaded by Deluge so they can immediately search for them.
 >
-> This is done by configuring Deluge to make an API request to `cross-seed` when a new torrent is added.
+> This is done by configuring Deluge to make an API request to cross-seed and Fertilizer when a new torrent finishes downloading.
 >
-> This requires a shell script be included in the Deluge container. Therefore, in this part we're using a custom build for
+> This requires a shell scripts be included in the Deluge container. Therefore, in this part we're using a custom build for
 > the `deluge` service.
 
 In the Deluge Web UI go to `Preferences > Plugins` and enable the `Execute` and `Label` plugins.
 
-Then under `Execute` add a new command with `Event` set to `Torrent Complete` and `Command` set to `/cross-seed`.
+Then under `Preferences > Execute` add a couple of new commands:
+
+1. Set `Event` to `Torrent Complete` and `Command` set to `/cross-seed`.
+2. Set `Event` to `Torrent Complete` and `Command` set to `/fertilizer`.
+
+Next we'll need to
+
+It's that simple!
+
+Test it out by adding a new torrent to Deluge and watch the logs of the `cross-seed` and `fertilizer` services.
+
+```bash
+docker logs -f cross-seed
+docker logs -f fertilizer
+```
 
 ## Troubleshooting
 

@@ -182,19 +182,17 @@ Set the `DELUGE_PASSWORD` variable to your desired Deluge Web Client password.
 
 ### 4. Update the shared environment variables
 
-Copy `shared/.env.example` to `shared/.env`:
+Copy `.env.example` to `.env`:
 
 ```bash
-cp shared/.env.example shared/.env
+cp .env.example .env
 ```
-
-These environment variables will be shared by multiple services, they're based on the [linuxserver.io](https://github.com/linuxserver/docker-deluge?tab=readme-ov-file#parameters).
 
 Run the `id` command to determine the values your user id and group id. Typically, these will both be `1000` but they can vary.
 
-Set the `UID` to the user id number return by the `id` command.
+Set the `USER_ID` to the user id number return by the `id` command.
 
-Set the `GID` to the group id number return by the `id` command.
+Set the `GROUP_ID` to the group id number return by the `id` command.
 
 For example if `id` returns:
 
@@ -205,8 +203,8 @@ uid=1234(your_user) gid=5678(your_group)
 Then use:
 
 ```ini
-UID=1234
-GID=5678
+USER_ID=1234
+GROUP_ID=5678
 ```
 
 > [!TIP]

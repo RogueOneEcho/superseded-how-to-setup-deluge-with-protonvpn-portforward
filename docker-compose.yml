@@ -22,7 +22,7 @@ services:
       additional_contexts:
         shared: shared
     volumes:
-    - /srv/shared:/srv/shared:z
+    - /srv/shared:/srv/shared
     env_file:
     - preflight/.env
     depends_on:
@@ -50,14 +50,16 @@ services:
     container_name: deluge
     image: lscr.io/linuxserver/deluge
     volumes:
-    - /srv/deluge:/config:Z
-    - /srv/shared:/srv/shared:z
+    - /srv/deluge:/config
+    - /srv/shared:/srv/shared
+    environment:
+      PUID: ${USER_ID}
+      PGID: ${GROUP_ID}
+      TZ: ${TIMEZONE}
     network_mode: "service:tunnel"
     depends_on:
       preflight:
         condition: service_completed_successfully
-    env_file:
-    - shared/.env
     healthcheck:
       test: curl --fail http://localhost:8112 || exit 1
     restart: unless-stopped

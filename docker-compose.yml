@@ -7,6 +7,7 @@ services:
     ports:
     - "0.0.0.0:8112:8112" # Deluge web client
     #- "0.0.0.0:58846:58846" # Deluge daemon
+    - "0.0.0.0:9696:9696" # Prowlarr
     devices:
     - /dev/net/tun:/dev/net/tun
     env_file:
@@ -80,15 +81,19 @@ services:
     restart: unless-stopped
 
   cross-seed:
-    image: ghcr.io/cross-seed/cross-seed:6.0.0-27
+    image: ghcr.io/cross-seed/cross-seed:6.0.0-36
     container_name: cross-seed
-    user: 1000:1000
     volumes:
     - /srv/cross-seed/config:/config:Z
     - /srv/cross-seed/data:/cross-seeds:Z
     - /srv/deluge/state:/torrents:Z
     - /srv/shared:/srv/shared:z
-    command: daemon
+    command: >
+      daemon
+      --torznab ${CROSS_SEED_TORZNAB}
+      --deluge-rpc-url ${CROSS_SEED_DELUGE_RPC_URL}
+      --torrent-dir /torrents
+    network_mode: "service:tunnel"
     depends_on:
     - deluge
     - prowlarr

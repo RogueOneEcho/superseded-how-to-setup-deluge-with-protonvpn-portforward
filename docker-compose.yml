@@ -23,7 +23,7 @@ services:
       additional_contexts:
         shared: shared
     volumes:
-    - /srv/shared:/srv/shared:z
+    - /srv/shared:/srv/shared
     env_file:
     - preflight/.env
     depends_on:
@@ -51,8 +51,8 @@ services:
     container_name: deluge
     image: lscr.io/linuxserver/deluge
     volumes:
-    - /srv/deluge:/config:z
-    - /srv/shared:/srv/shared:z
+    - /srv/deluge:/config
+    - /srv/shared:/srv/shared
     environment:
       PUID: ${USER_ID}
       PGID: ${GROUP_ID}
@@ -69,7 +69,7 @@ services:
     container_name: prowlarr
     image: lscr.io/linuxserver/prowlarr:develop
     volumes:
-    - /srv/prowlarr:/config:Z
+    - /srv/prowlarr:/config
     environment:
       PUID: ${USER_ID}
       PGID: ${GROUP_ID}
@@ -87,10 +87,10 @@ services:
     user: "${USER_ID}:${GROUP_ID}"
     container_name: cross-seed
     volumes:
-    - /srv/cross-seed/config:/config:z
-    - /srv/cross-seed/data:/cross-seeds:z
-    - /srv/deluge/state:/torrents:z,ro
-    - /srv/shared:/srv/shared:z
+    - /srv/cross-seed/config:/config
+    - /srv/cross-seed/data:/cross-seeds
+    - /srv/deluge/state:/torrents:ro
+    - /srv/shared:/srv/shared
     command: >
       daemon
       --torznab ${CROSS_SEED_TORZNAB}

@@ -6,15 +6,14 @@ TORRENT_PATH=$3
 
 source /logging
 
-log-information "${BOLD}Requesting${RESET} cross-seed search for ${TORRENT_NAME}"
+log-information "${BOLD}Requesting${RESET} Fertilizer search for ${TORRENT_NAME}"
 log-trace "Hash: ${TORRENT_HASH}"
 log-trace "Path: ${TORRENT_PATH}"
 
 if curl --fail --silent --show-error \
    --request POST \
-   --header 'Content-Type: application/json' \
-   --data '{"infoHash":"'"${TORRENT_HASH}"'"}' \
-   http://localhost:2468/api/webhook?apikey=YOUR_API_KEY
+   --data-urlencode "infohash=${TORRENT_HASH}" \
+   http://localhost:9713/api/webhook
 then
   log-debug "${BOLD}Successfully${RESET} requested cross-seed search"
 else

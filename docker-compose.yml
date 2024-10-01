@@ -113,7 +113,7 @@ services:
 
   fertilizer:
     container_name: fertilizer
-    build: fertilizer
+    image: ghcr.io/moleculekayak/fertilizer
     user: "${USER_ID}:${GROUP_ID}"
     volumes:
     - /srv/fertilizer/config:/config
